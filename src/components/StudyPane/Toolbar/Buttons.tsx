@@ -361,16 +361,24 @@ export const StructureUpdateBtn = ({ updateType, toolTip }: { updateType: Struct
   const { ctxIsHebrew, ctxSelectedWords, ctxSetStructureUpdateType, ctxNumSelectedStrophes, ctxSelectedStrophes, ctxPassageProps } = useContext(FormatContext);
 
   let buttonEnabled = false;
+  let hasContiguousWords = false;
   let hasWordSelected = (ctxSelectedWords.length === 1);
   let hasStropheSelected = (ctxSelectedStrophes.length === 1);
   let hasStrophesSelected = (ctxNumSelectedStrophes === 1) && (ctxPassageProps.stropheCount > 1) && (ctxSelectedStrophes[0] !== undefined);
 
+  if (ctxSelectedWords.length > 1) {
+    const sortedWords = [...ctxSelectedWords].sort((a, b) => a.wordId - b.wordId);
+    hasContiguousWords = sortedWords.every((word, idx) => 
+      idx === 0 || sortedWords[idx - 1].wordId + 1 === word.wordId
+    );
+  }
+
   if (updateType === StructureUpdateType.newLine) {
-    buttonEnabled = hasWordSelected && !ctxSelectedWords[0].newLine && !ctxSelectedWords[0].metadata?.lineBreak && !ctxSelectedWords[0].firstWordInStrophe;
+    buttonEnabled = (hasWordSelected || hasContiguousWords) && !ctxSelectedWords[0].newLine && !ctxSelectedWords[0].metadata?.lineBreak && !ctxSelectedWords[0].firstWordInStrophe;
   } else if (updateType === StructureUpdateType.mergeWithPrevLine) {
-    buttonEnabled = hasWordSelected && (ctxSelectedWords[0].lineId !== 0);
+    buttonEnabled = (hasWordSelected || hasContiguousWords) && (ctxSelectedWords[0].lineId !== 0);
   } else if (updateType === StructureUpdateType.mergeWithNextLine) {
-    buttonEnabled = hasWordSelected &&
+    buttonEnabled = (hasWordSelected || hasContiguousWords) &&
       ctxPassageProps.stanzaProps[ctxSelectedWords[0].stanzaId]
         .strophes[ctxSelectedWords[0].stropheId].lines.length - 1 !== ctxSelectedWords[0].lineId;
   } else if (updateType === StructureUpdateType.newStrophe) {
