@@ -58,6 +58,18 @@ const Passage = ({
             ctxSelectedStrophes,
             bibleData)
         }
+        if (ctxStructureUpdateType == StructureUpdateType.mergeWithPrevLine)
+        {
+          // for each word in sortedWords, call updateStructureMetadata with each word
+          sortedWords.forEach(word => {
+            updateStructureMetadata(
+              ctxStructureUpdateType,
+              word.wordId,
+              ctxStudyMetadata,
+              ctxSelectedStrophes,
+              bibleData)
+          });
+        }
       }
       const updatedPassageProps = mergeData(bibleData, ctxStudyMetadata);
       ctxSetPassageProps(updatedPassageProps);
