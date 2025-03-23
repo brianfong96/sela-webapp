@@ -42,26 +42,39 @@ const Passage = ({
       else if (ctxSelectedWords.length > 1 && sortedWords.every((word, idx) => idx === 0 || sortedWords[idx - 1].wordId + 1 === word.wordId)) {
         const firstWordId = sortedWords.length > 0 ? sortedWords[0].wordId : null;
         const lastWordId = sortedWords.length > 0 ? sortedWords[sortedWords.length - 1].wordId : null;
-        if (firstWordId) {
-          updateStructureMetadata(
-            ctxStructureUpdateType,
-            firstWordId,
-            ctxStudyMetadata,
-            ctxSelectedStrophes,
-            bibleData)
+        if (ctxStructureUpdateType == StructureUpdateType.newLine) {
+          if (firstWordId) {
+            updateStructureMetadata(
+              ctxStructureUpdateType,
+              firstWordId,
+              ctxStudyMetadata,
+              ctxSelectedStrophes,
+              bibleData)
+          }
+          else if (lastWordId) {
+            updateStructureMetadata(
+              ctxStructureUpdateType,
+              lastWordId,
+              ctxStudyMetadata,
+              ctxSelectedStrophes,
+              bibleData)
+          }
         }
-        else if (lastWordId) {
-          updateStructureMetadata(
-            ctxStructureUpdateType,
-            lastWordId,
-            ctxStudyMetadata,
-            ctxSelectedStrophes,
-            bibleData)
-        }
-        if (ctxStructureUpdateType == StructureUpdateType.mergeWithPrevLine)
-        {
+        else if (ctxStructureUpdateType == StructureUpdateType.mergeWithPrevLine) {
           // for each word in sortedWords, call updateStructureMetadata with each word
           sortedWords.forEach(word => {
+            updateStructureMetadata(
+              ctxStructureUpdateType,
+              word.wordId,
+              ctxStudyMetadata,
+              ctxSelectedStrophes,
+              bibleData)
+          });
+        }
+        else if (ctxStructureUpdateType == StructureUpdateType.mergeWithNextLine) {
+          // for each word in sortedWords, call updateStructureMetadata with each word in reverse order
+          // TODO: after merging with next line, the new line button is greyed out.
+          sortedWords.reverse().forEach(word => {
             updateStructureMetadata(
               ctxStructureUpdateType,
               word.wordId,
