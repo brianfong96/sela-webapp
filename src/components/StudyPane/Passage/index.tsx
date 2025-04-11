@@ -55,7 +55,6 @@ const Passage = ({
         }
         else if (ctxStructureUpdateType == StructureUpdateType.mergeWithNextLine) {
           // for each word in sortedWords, call updateStructureMetadata with each word in reverse order
-          // TODO: after merging with next line, the new line button is greyed out.
           sortedWords.reverse().forEach(word => {
             updateStructureMetadata(
               ctxStructureUpdateType,
@@ -66,6 +65,7 @@ const Passage = ({
           });
         }
       }
+      // TODO: handle cases where there is multiple selected words that are continguous for the strophe now like it was done with the new line
       else if (ctxStructureUpdateType == StructureUpdateType.newStrophe) {
         ctxStudyMetadata.words[selectedWordId] = {
           ...ctxStudyMetadata.words[selectedWordId],
