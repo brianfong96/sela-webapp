@@ -41,31 +41,16 @@ const Passage = ({
         const lastWordId = sortedWords.length > 0 ? sortedWords[sortedWords.length - 1].wordId : null;
         if (ctxStructureUpdateType == StructureUpdateType.newLine) {
           if (firstWordId) {
-            updateStructureMetadata(
-              ctxStructureUpdateType,
-              firstWordId,
-              ctxStudyMetadata,
-              ctxSelectedStrophes,
-              bibleData)
+            updateStructureMetadata(ctxStructureUpdateType, firstWordId, ctxStudyMetadata, ctxSelectedStrophes, bibleData)
           }
           else if (lastWordId) {
-            updateStructureMetadata(
-              ctxStructureUpdateType,
-              lastWordId,
-              ctxStudyMetadata,
-              ctxSelectedStrophes,
-              bibleData)
+            updateStructureMetadata(ctxStructureUpdateType, lastWordId, ctxStudyMetadata, ctxSelectedStrophes, bibleData)
           }
         }
         else if (ctxStructureUpdateType == StructureUpdateType.mergeWithPrevLine) {
           // for each word in sortedWords, call updateStructureMetadata with each word
           sortedWords.forEach(word => {
-            updateStructureMetadata(
-              ctxStructureUpdateType,
-              word.wordId,
-              ctxStudyMetadata,
-              ctxSelectedStrophes,
-              bibleData)
+            updateStructureMetadata(ctxStructureUpdateType, word.wordId, ctxStudyMetadata, ctxSelectedStrophes, bibleData)
           });
         }
         else if (ctxStructureUpdateType == StructureUpdateType.mergeWithNextLine) {
@@ -221,7 +206,6 @@ const Passage = ({
     return () => eventBus.off("selectAllIdenticalWords", handler);
   }, [ctxSelectedWords]);
 
-  //console.log(passageProps);
   function updateStructureMetadata(
     ctxStructureUpdateType: StructureUpdateType,
     selectedWordId: number,
