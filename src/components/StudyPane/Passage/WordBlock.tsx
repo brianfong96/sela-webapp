@@ -32,17 +32,18 @@ export const WordBlock = ({
   const { ctxIsHebrew, ctxBoxDisplayStyle, ctxIndentNum,
     ctxSelectedWords, ctxSetSelectedWords, ctxSetNumSelectedWords,
     ctxSetSelectedStrophes, ctxColorAction, ctxSelectedColor,
-    ctxSetColorFill, ctxSetBorderColor, ctxSetTextColor, ctxRootsColorMap
+    ctxSetColorFill, ctxSetBorderColor, ctxSetTextColor,
+    ctxRootsColorMap, ctxSetRootsColorMap
   } = useContext(FormatContext)
 
-  const [colorFillLocal, setColorFillLocal] = useState(wordProps.metadata?.color?.fill || DEFAULT_COLOR_FILL);
-  const [borderColorLocal, setBorderColorLocal] = useState(wordProps.metadata?.color?.border || DEFAULT_BORDER_COLOR);
-  const [textColorLocal, setTextColorLocal] = useState(wordProps.metadata?.color?.text || DEFAULT_TEXT_COLOR);
+  const [colorFillLocal, setColorFillLocal] = useState(DEFAULT_COLOR_FILL);
+  const [borderColorLocal, setBorderColorLocal] = useState(DEFAULT_BORDER_COLOR);
+  const [textColorLocal, setTextColorLocal] = useState(DEFAULT_TEXT_COLOR);
   const [indentsLocal, setIndentsLocal] = useState(wordProps.metadata?.indent || 0);
   const [selected, setSelected] = useState(false);
   const [clickTimeout, setClickTimeout] = useState<NodeJS.Timeout | null>(null);
 
-  if (ctxColorAction != ColorActionType.none ) {
+  if (ctxColorAction != ColorActionType.none) {
 
     ctxRootsColorMap.delete(wordProps.strongNumber);
 
@@ -61,7 +62,6 @@ export const WordBlock = ({
       colorUpdates.text = ctxSelectedColor;
     }
     else if ((ctxColorAction === ColorActionType.resetColor && selected) || ctxColorAction == ColorActionType.resetAllColor) {
-
       if (colorFillLocal !== DEFAULT_COLOR_FILL) {
         setColorFillLocal(DEFAULT_COLOR_FILL);
         colorUpdates.fill = DEFAULT_COLOR_FILL;
@@ -83,15 +83,47 @@ export const WordBlock = ({
           ...colorUpdates,
         },
       };
-    }    
+    }
   }
 
   useEffect(() => {
+
+    // if (wordProps.wordId === 199702) {
+    // console.log("What is my metadata", wordProps);
+    // }
+
+    if (wordProps.metadata?.color) {
+      const selectedColorFill = wordProps.metadata?.color?.fill ?? DEFAULT_COLOR_FILL;
+      (colorFillLocal !== selectedColorFill) && setColorFillLocal(selectedColorFill);
+
+      const selectedBorderColor = wordProps.metadata?.color?.border ?? DEFAULT_BORDER_COLOR;
+      (borderColorLocal !== selectedBorderColor) && setBorderColorLocal(selectedBorderColor);
+
+      const selectedTextColor = wordProps.metadata?.color?.text ?? DEFAULT_TEXT_COLOR;
+      (textColorLocal !== selectedTextColor) && setTextColorLocal(selectedTextColor);
+    }
+    else {
+      setColorFillLocal(DEFAULT_COLOR_FILL);
+      setBorderColorLocal(DEFAULT_BORDER_COLOR);
+      setTextColorLocal(DEFAULT_TEXT_COLOR);
+    }
+
+    ctxSetRootsColorMap(new Map());
+  }, [wordProps.metadata?.color]);
+
+  useEffect(() => {
     if (selected && ctxIndentNum != indentsLocal) {
-      //console.log("Change indent num to " + ctxIndentNum)
       setIndentsLocal(ctxIndentNum);
+      wordProps.metadata.indent = ctxIndentNum;
     }
   }, [ctxIndentNum])
+
+  useEffect(() => {
+    const indent = wordProps.metadata?.indent ?? 0;
+    if (indentsLocal !== indent) {
+      setIndentsLocal(indent);
+    }
+  }, [wordProps.metadata?.indent]);
 
   useEffect(() => {
     const rootsColor = ctxRootsColorMap.get(wordProps.strongNumber)
@@ -121,7 +153,6 @@ export const WordBlock = ({
       }
     }
   }, [ctxSelectedWords, ctxSetColorFill, ctxSetBorderColor, ctxSetTextColor]);
-
 
   const handleClick = () => {
     if (clickTimeout) {
@@ -200,21 +231,18 @@ export const WordBlock = ({
         {[...Array(times)].map((_, i) => (
           <div
             key={i}
-            className={`mx-1 rounded border'}
-          `}
+            className={`wordBlock mx-1 select-none rounded border outline-offset-[-4px]'}`}
             style={
               {
-                border: `2px solid transparent`,
+                boxSizing: 'border-box',
+                border: `${borderColorLocal !== DEFAULT_BORDER_COLOR ? '3px' : '2px'} solid transparent`,
+                padding: `${borderColorLocal !== DEFAULT_BORDER_COLOR ? '1px' : '2px'}`,
               }
             }>
-            <span
-              className="flex"
-            >
+            <span className="flex select-none">
               {<sup {...verseNumStyles}></sup>}
-              <span
-                className={`whitespace-nowrap break-keep flex select-none px-2 py-1 items-center justify-center text-center leading-none
-                  ${ctxBoxDisplayStyle === BoxDisplayStyle.uniformBoxes && (ctxIsHebrew ? hebBlockSizeStyle : engBlockSizeStyle)}`}
-              >
+              <span className={`whitespace-nowrap break-keep flex select-none px-2 py-1 items-center justify-center text-center leading-none ${fontSize}
+              ${ctxBoxDisplayStyle === BoxDisplayStyle.uniformBoxes && (ctxIsHebrew ? hebBlockSizeStyle : engBlockSizeStyle)}`}>
               </span>
             </span>
           </div>
@@ -233,7 +261,9 @@ export const WordBlock = ({
         style={
           {
             background: `${colorFillLocal}`,
-            border: `2px solid ${borderColorLocal}`,
+            boxSizing: 'border-box',
+            border: `${borderColorLocal !== DEFAULT_BORDER_COLOR ? '3px' : '2px'} solid ${borderColorLocal}`,
+            padding: `${borderColorLocal !== DEFAULT_BORDER_COLOR ? '1px' : '2px'}`,
             color: `${textColorLocal}`,
           }
         }>
