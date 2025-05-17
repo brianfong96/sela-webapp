@@ -117,6 +117,7 @@ export interface StudyData {
     id: string;
     name: string;
     owner: string | undefined;
+    book: string
     passage: string;
     public: boolean;
     starred?: boolean;
@@ -134,6 +135,7 @@ export type PassageStaticData = {
 // TO BE DEPRECATED - START
 export type HebWord = {
     id: number;
+    book: string;
     chapter: number;
     verse: number;
     strongNumber: number;
