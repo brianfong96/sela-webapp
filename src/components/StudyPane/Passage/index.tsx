@@ -64,8 +64,18 @@ const Passage = ({
               bibleData)
           });
         }
+        else if (ctxStructureUpdateType == StructureUpdateType.newStrophe) {
+          const sameStrophe = sortedWords.every(word => word.stropheId === sortedWords[0].stropheId);
+          if (sameStrophe && firstWordId !== null) {
+            updateStructureMetadata(
+              ctxStructureUpdateType,
+              firstWordId,
+              ctxStudyMetadata,
+              ctxSelectedStrophes,
+              bibleData)
+          }
+        }
       }
-      // TODO: handle cases where there is multiple selected words that are continguous for the strophe now like it was done with the new line
       else if (ctxStructureUpdateType == StructureUpdateType.newStrophe) {
         ctxStudyMetadata.words[selectedWordId] = {
           ...ctxStudyMetadata.words[selectedWordId],
@@ -113,10 +123,13 @@ const Passage = ({
         }
       }
       else if (ctxStructureUpdateType == StructureUpdateType.newStanza) {
-        if (ctxSelectedStrophes.length === 1) {
-          // there should always be at least one line and one word in a strophe          
-          selectedWordId = ctxSelectedStrophes[0].lines.at(0)?.words.at(0)?.wordId || 0;
-        }        
+        if (ctxSelectedStrophes.length >= 1) {
+          const highestStrophe = ctxSelectedStrophes.reduce((prev, curr) =>
+            curr.stropheId < prev.stropheId ? curr : prev, ctxSelectedStrophes[0]);
+          selectedWordId = highestStrophe.lines.at(0)?.words.at(0)?.wordId || 0;
+        } else if (ctxSelectedWords.length === 1) {
+          selectedWordId = ctxSelectedWords[0].wordId;
+        }
         ctxStudyMetadata.words[selectedWordId] = {
           ...ctxStudyMetadata.words[selectedWordId],
           stanzaDiv: true,
@@ -305,9 +318,11 @@ const Passage = ({
       }
     }
     else if (ctxStructureUpdateType == StructureUpdateType.newStanza) {
-      if (ctxSelectedStrophes.length === 1) {
-        selectedWordId = ctxSelectedStrophes[0].lines.at(0)?.words.at(0)?.wordId || 0;
-      }        
+      if (ctxSelectedStrophes.length >= 1) {
+        const highestStrophe = ctxSelectedStrophes.reduce((prev, curr) =>
+          curr.stropheId < prev.stropheId ? curr : prev, ctxSelectedStrophes[0]);
+        selectedWordId = highestStrophe.lines.at(0)?.words.at(0)?.wordId || 0;
+      }
       ctxStudyMetadata.words[selectedWordId] = {
         ...ctxStudyMetadata.words[selectedWordId],
         stanzaDiv: true,
