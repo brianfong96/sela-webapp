@@ -523,9 +523,9 @@ export const StructureUpdateBtn = ({ updateType, toolTip }: { updateType: Struct
   } else if (updateType === StructureUpdateType.newStrophe) {
     buttonEnabled = (hasWordSelected || (hasContiguousWords && sameStrophe)) && (!ctxSelectedWords[0].firstWordInStrophe);
   } else if (updateType === StructureUpdateType.mergeWithPrevStrophe) {
-    buttonEnabled = (hasWordSelected && (!ctxSelectedWords[0].firstStropheInStanza) || (hasStropheSelected && !ctxSelectedStrophes[0].firstStropheInStanza));
+    buttonEnabled = (hasWordSelected && (!ctxSelectedWords[0].firstStropheInStanza) || (hasStrophesSelected && !highestSelectedStrophe.firstStropheInStanza));
   } else if (updateType === StructureUpdateType.mergeWithNextStrophe) {
-    buttonEnabled = (hasWordSelected && (!ctxSelectedWords[0].lastStropheInStanza) || (hasStropheSelected && !ctxSelectedStrophes[0].lastStropheInStanza));
+    buttonEnabled = (hasWordSelected && (!ctxSelectedWords[0].lastStropheInStanza) || (hasStrophesSelected && !highestSelectedStrophe.lastStropheInStanza));
   } else if (updateType === StructureUpdateType.newStanza) {
     buttonEnabled = hasStrophesSelected && (!highestSelectedStrophe.firstStropheInStanza);
   } else if (updateType === StructureUpdateType.mergeWithPrevStanza) {
