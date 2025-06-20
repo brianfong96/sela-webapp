@@ -26,10 +26,12 @@ const Passage = ({
 
   useEffect(() => {
 
-    if (ctxStructureUpdateType !== StructureUpdateType.none && 
-      (ctxSelectedWords.length === 1 || ctxSelectedStrophes.length == 1)) {
+    if (ctxStructureUpdateType !== StructureUpdateType.none &&
+      (ctxSelectedWords.length > 0 || ctxSelectedStrophes.length >= 1)) {
 
-      let selectedWordId = (ctxSelectedWords.length === 1) ? ctxSelectedWords[0].wordId : 0;
+      const sortedWords = [...ctxSelectedWords].sort((a, b) => a.wordId - b.wordId);
+      let selectedWordId = (sortedWords.length > 0) ? sortedWords[0].wordId : 0;
+      const lastSelectedWordId = (sortedWords.length > 0) ? sortedWords[sortedWords.length - 1].wordId : selectedWordId;
 
       if (ctxStructureUpdateType == StructureUpdateType.newLine) {
         ctxStudyMetadata.words[selectedWordId] = {
@@ -37,6 +39,22 @@ const Passage = ({
           lineBreak: true,
           ignoreNewLine: undefined
         };
+
+        sortedWords.slice(1).forEach(w => {
+          if (ctxStudyMetadata.words[w.wordId]) {
+            delete ctxStudyMetadata.words[w.wordId].lineBreak;
+            delete ctxStudyMetadata.words[w.wordId].ignoreNewLine;
+          }
+        });
+
+        const nextWordId = lastSelectedWordId + 1;
+        if (bibleData.some(word => word.wordId === nextWordId)) {
+          ctxStudyMetadata.words[nextWordId] = {
+            ...(ctxStudyMetadata.words[nextWordId] || {}),
+            lineBreak: true,
+            ignoreNewLine: undefined
+          };
+        }
       }
       else if (ctxStructureUpdateType == StructureUpdateType.mergeWithPrevLine) {
         const foundIndex = bibleData.findLastIndex(word =>
@@ -44,23 +62,33 @@ const Passage = ({
           (word.newLine || ctxStudyMetadata.words[word.wordId]?.lineBreak)
         );
         if (foundIndex !== -1) {
-          ctxStudyMetadata.words[bibleData[foundIndex].wordId] = {
-            ...ctxStudyMetadata.words[bibleData[foundIndex].wordId],
+          const id = bibleData[foundIndex].wordId;
+          ctxStudyMetadata.words[id] = {
+            ...(ctxStudyMetadata.words[id] || {}),
             lineBreak: undefined,
             ignoreNewLine: true,
           };
         }
-        ctxStudyMetadata.words[selectedWordId] = {
-          ...ctxStudyMetadata.words[selectedWordId],
-          lineBreak: undefined,
-          ignoreNewLine: true,
-        };
-        const nextWordId = selectedWordId + 1;
-        ctxStudyMetadata.words[nextWordId] = {
-          ...(ctxStudyMetadata.words[nextWordId] || {}),
-          lineBreak: true,
-          ignoreNewLine: undefined
-        };
+
+        for (let i = selectedWordId; i <= lastSelectedWordId; i++) {
+          const word = bibleData.find(w => w.wordId === i);
+          if (word?.newLine || ctxStudyMetadata.words[i]?.lineBreak) {
+            ctxStudyMetadata.words[i] = {
+              ...(ctxStudyMetadata.words[i] || {}),
+              lineBreak: undefined,
+              ignoreNewLine: true,
+            };
+          }
+        }
+
+        const nextWordId = lastSelectedWordId + 1;
+        if (bibleData.some(word => word.wordId === nextWordId)) {
+          ctxStudyMetadata.words[nextWordId] = {
+            ...(ctxStudyMetadata.words[nextWordId] || {}),
+            lineBreak: true,
+            ignoreNewLine: undefined
+          };
+        }
       }
       else if (ctxStructureUpdateType == StructureUpdateType.mergeWithNextLine) {
         ctxStudyMetadata.words[selectedWordId] = {
@@ -68,13 +96,25 @@ const Passage = ({
           lineBreak: true,
           ignoreNewLine: undefined
         };
+
+        sortedWords.slice(1).forEach(w => {
+          if (w.newLine || ctxStudyMetadata.words[w.wordId]?.lineBreak) {
+            ctxStudyMetadata.words[w.wordId] = {
+              ...(ctxStudyMetadata.words[w.wordId] || {}),
+              lineBreak: undefined,
+              ignoreNewLine: true,
+            };
+          }
+        });
+
         const foundIndex = bibleData.findIndex(word =>
-          word.wordId > selectedWordId &&
+          word.wordId > lastSelectedWordId &&
           (word.newLine || ctxStudyMetadata.words[word.wordId]?.lineBreak)
         );
         if (foundIndex !== -1) {
-          ctxStudyMetadata.words[bibleData[foundIndex].wordId] = {
-            ...ctxStudyMetadata.words[bibleData[foundIndex].wordId],
+          const id = bibleData[foundIndex].wordId;
+          ctxStudyMetadata.words[id] = {
+            ...(ctxStudyMetadata.words[id] || {}),
             lineBreak: undefined,
             ignoreNewLine: true,
           };
@@ -85,56 +125,108 @@ const Passage = ({
           ...ctxStudyMetadata.words[selectedWordId],
           stropheDiv: true,
         };
-      }
-      else if (ctxStructureUpdateType == StructureUpdateType.mergeWithPrevStrophe) {
-        if (ctxSelectedStrophes.length === 1) {
-          // there should always be at least one line and one word in a strophe          
-          selectedWordId = ctxSelectedStrophes[0].lines.at(-1)?.words.at(-1)?.wordId || 0;
-        }
 
-        const foundIndex = bibleData.findLastIndex(word =>
-          word.wordId <= selectedWordId && ctxStudyMetadata.words[word.wordId]?.stropheDiv
-        );
-        if (foundIndex !== -1) {
-          delete ctxStudyMetadata.words[bibleData[foundIndex].wordId].stropheDiv;
-          delete ctxStudyMetadata.words[bibleData[foundIndex].wordId].stropheMd;
-        }
-        const nextWordId = selectedWordId + 1;
-        ctxStudyMetadata.words[nextWordId] = {
-          ...(ctxStudyMetadata.words[nextWordId] || {}),
-          stropheDiv: true
-        };
-      }
-      else if (ctxStructureUpdateType == StructureUpdateType.mergeWithNextStrophe) {
-        if (ctxSelectedStrophes.length === 1) {
-          // there should always be at least one line and one word in a strophe          
-          selectedWordId = ctxSelectedStrophes[0].lines.at(0)?.words.at(0)?.wordId || 0;
-        }
-        ctxStudyMetadata.words[selectedWordId] = {
-          ...(ctxStudyMetadata.words[selectedWordId] || {}),
-          stropheDiv: true
-        };
-        const foundIndex = bibleData.findIndex(word =>
-          word.wordId > selectedWordId && ctxStudyMetadata.words[word.wordId]?.stropheDiv
-        );
+        sortedWords.slice(1).forEach(w => {
+          if (ctxStudyMetadata.words[w.wordId]) {
+            delete ctxStudyMetadata.words[w.wordId].stropheDiv;
+            delete ctxStudyMetadata.words[w.wordId].stropheMd;
+          }
+        });
 
-        if (foundIndex !== -1) {
-          ctxStudyMetadata.words[bibleData[foundIndex].wordId] = {
-            ...ctxStudyMetadata.words[bibleData[foundIndex].wordId],
-            stropheDiv: false,
-            stropheMd: undefined
+        const nextWordId = lastSelectedWordId + 1;
+        if (bibleData.some(word => word.wordId === nextWordId)) {
+          ctxStudyMetadata.words[nextWordId] = {
+            ...(ctxStudyMetadata.words[nextWordId] || {}),
+            stropheDiv: true
           };
         }
       }
+      else if (ctxStructureUpdateType == StructureUpdateType.mergeWithPrevStrophe) {
+        if (ctxSelectedStrophes.length >= 1) {
+          const sortedStrophes = [...ctxSelectedStrophes].sort((a, b) => a.stropheId - b.stropheId);
+          sortedStrophes.forEach(s => {
+            const firstWordId = s.lines[0].words[0].wordId;
+            delete ctxStudyMetadata.words[firstWordId]?.stropheDiv;
+            delete ctxStudyMetadata.words[firstWordId]?.stropheMd;
+          });
+          const lastWordId = sortedStrophes.at(-1)!.lines.at(-1)!.words.at(-1)!.wordId;
+          const nextWordId = lastWordId + 1;
+          ctxStudyMetadata.words[nextWordId] = {
+            ...(ctxStudyMetadata.words[nextWordId] || {}),
+            stropheDiv: true
+          };
+        } else {
+          const foundIndex = bibleData.findLastIndex(word =>
+            word.wordId <= selectedWordId && ctxStudyMetadata.words[word.wordId]?.stropheDiv
+          );
+          if (foundIndex !== -1) {
+            delete ctxStudyMetadata.words[bibleData[foundIndex].wordId].stropheDiv;
+            delete ctxStudyMetadata.words[bibleData[foundIndex].wordId].stropheMd;
+          }
+          const nextWordId = selectedWordId + 1;
+          ctxStudyMetadata.words[nextWordId] = {
+            ...(ctxStudyMetadata.words[nextWordId] || {}),
+            stropheDiv: true
+          };
+        }
+      }
+      else if (ctxStructureUpdateType == StructureUpdateType.mergeWithNextStrophe) {
+        if (ctxSelectedStrophes.length >= 1) {
+          const sortedStrophes = [...ctxSelectedStrophes].sort((a, b) => a.stropheId - b.stropheId);
+          const firstWordId = sortedStrophes[0].lines[0].words[0].wordId;
+          ctxStudyMetadata.words[firstWordId] = {
+            ...(ctxStudyMetadata.words[firstWordId] || {}),
+            stropheDiv: true
+          };
+          const foundIndex = bibleData.findIndex(word =>
+            word.wordId > sortedStrophes.at(-1)!.lines.at(-1)!.words.at(-1)!.wordId && ctxStudyMetadata.words[word.wordId]?.stropheDiv
+          );
+          if (foundIndex !== -1) {
+            ctxStudyMetadata.words[bibleData[foundIndex].wordId] = {
+              ...ctxStudyMetadata.words[bibleData[foundIndex].wordId],
+              stropheDiv: false,
+              stropheMd: undefined
+            };
+          }
+        } else {
+          ctxStudyMetadata.words[selectedWordId] = {
+            ...(ctxStudyMetadata.words[selectedWordId] || {}),
+            stropheDiv: true
+          };
+          const foundIndex = bibleData.findIndex(word =>
+            word.wordId > selectedWordId && ctxStudyMetadata.words[word.wordId]?.stropheDiv
+          );
+          if (foundIndex !== -1) {
+            ctxStudyMetadata.words[bibleData[foundIndex].wordId] = {
+              ...ctxStudyMetadata.words[bibleData[foundIndex].wordId],
+              stropheDiv: false,
+              stropheMd: undefined
+            };
+          }
+        }
+      }
       else if (ctxStructureUpdateType == StructureUpdateType.newStanza) {
-        if (ctxSelectedStrophes.length === 1) {
-          // there should always be at least one line and one word in a strophe          
-          selectedWordId = ctxSelectedStrophes[0].lines.at(0)?.words.at(0)?.wordId || 0;
-        }        
+        const sortedStrophes = [...ctxSelectedStrophes].sort((a, b) => a.lines[0].words[0].wordId - b.lines[0].words[0].wordId);
+        if (sortedStrophes.length === 0) {
+          return;
+        }
+
+        selectedWordId = sortedStrophes[0].lines[0].words[0].wordId;
+        const lastStrophe = sortedStrophes[sortedStrophes.length - 1];
+        const lastWordIdInStrophes = lastStrophe.lines.at(-1)?.words.at(-1)?.wordId || selectedWordId;
+
         ctxStudyMetadata.words[selectedWordId] = {
           ...ctxStudyMetadata.words[selectedWordId],
           stanzaDiv: true,
         };
+
+        const nextWordId = lastWordIdInStrophes + 1;
+        if (bibleData.some(word => word.wordId === nextWordId)) {
+          ctxStudyMetadata.words[nextWordId] = {
+            ...(ctxStudyMetadata.words[nextWordId] || {}),
+            stanzaDiv: true
+          };
+        }
       }
       else if (ctxStructureUpdateType == StructureUpdateType.mergeWithPrevStanza) {
         if (ctxSelectedStrophes.length === 1) {
