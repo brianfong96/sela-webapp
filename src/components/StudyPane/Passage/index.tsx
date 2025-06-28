@@ -331,8 +331,12 @@ const Passage = ({
 
       updateMetadataInDb(ctxStudyId, newMetadata);
 
-      ctxSetSelectedStrophes([]);
-      ctxSetNumSelectedStrophes(0);
+      if (![StructureUpdateType.newStanza,
+            StructureUpdateType.mergeWithPrevStanza,
+            StructureUpdateType.mergeWithNextStanza].includes(ctxStructureUpdateType)) {
+        ctxSetSelectedStrophes([]);
+        ctxSetNumSelectedStrophes(0);
+      }
     }
    
     // Reset the structure update type
