@@ -43,7 +43,8 @@ const Passage = ({
         delete newMetadata.words[selectedWordId].ignoreNewLine;
 
         sortedWords.slice(1).forEach(w => {
-          const hasBreak = w.newLine || newMetadata.words[w.wordId]?.lineBreak;
+          const hasBreak = (w.newLine && !newMetadata.words[w.wordId]?.ignoreNewLine) ||
+            newMetadata.words[w.wordId]?.lineBreak;
           if (hasBreak) {
           newMetadata.words[w.wordId] = {
             ...(newMetadata.words[w.wordId] || {}),
@@ -59,7 +60,8 @@ const Passage = ({
         const nextWordId = lastSelectedWordId + 1;
         if (bibleData.some(word => word.wordId === nextWordId)) {
           const nextWord = bibleData.find(word => word.wordId === nextWordId);
-          const hasBreak = nextWord?.newLine || newMetadata.words[nextWordId]?.lineBreak;
+          const hasBreak = (nextWord?.newLine && !newMetadata.words[nextWordId]?.ignoreNewLine) ||
+            newMetadata.words[nextWordId]?.lineBreak;
           if (hasBreak) {
             newMetadata.words[nextWordId] = {
               ...(newMetadata.words[nextWordId] || {}),
@@ -72,7 +74,8 @@ const Passage = ({
       else if (ctxStructureUpdateType == StructureUpdateType.mergeWithPrevLine) {
         const foundIndex = bibleData.findLastIndex(word =>
           word.wordId <= selectedWordId &&
-          (word.newLine || newMetadata.words[word.wordId]?.lineBreak)
+          ((word.newLine && !newMetadata.words[word.wordId]?.ignoreNewLine) ||
+            newMetadata.words[word.wordId]?.lineBreak)
         );
         if (foundIndex !== -1) {
           const id = bibleData[foundIndex].wordId;
@@ -85,7 +88,8 @@ const Passage = ({
 
         for (let i = selectedWordId; i <= lastSelectedWordId; i++) {
           const word = bibleData.find(w => w.wordId === i);
-          if (word?.newLine || newMetadata.words[i]?.lineBreak) {
+          if ((word?.newLine && !newMetadata.words[i]?.ignoreNewLine) ||
+              newMetadata.words[i]?.lineBreak) {
             newMetadata.words[i] = {
               ...(newMetadata.words[i] || {}),
               lineBreak: undefined,
@@ -107,7 +111,8 @@ const Passage = ({
         let lineStartId = selectedWordId;
         const prevBreakIndex = bibleData.findLastIndex(word =>
           word.wordId < selectedWordId &&
-          (word.newLine || newMetadata.words[word.wordId]?.lineBreak)
+          ((word.newLine && !newMetadata.words[word.wordId]?.ignoreNewLine) ||
+            newMetadata.words[word.wordId]?.lineBreak)
         );
         if (prevBreakIndex !== -1) {
           lineStartId = bibleData[prevBreakIndex].wordId;
@@ -121,7 +126,8 @@ const Passage = ({
 
         for (let i = lineStartId + 1; i <= lastSelectedWordId; i++) {
           const word = bibleData.find(w => w.wordId === i);
-          if (word?.newLine || newMetadata.words[i]?.lineBreak) {
+          if ((word?.newLine && !newMetadata.words[i]?.ignoreNewLine) ||
+              newMetadata.words[i]?.lineBreak) {
             newMetadata.words[i] = {
               ...(newMetadata.words[i] || {}),
               lineBreak: undefined,
@@ -132,7 +138,8 @@ const Passage = ({
 
         const foundIndex = bibleData.findIndex(word =>
           word.wordId > lastSelectedWordId &&
-          (word.newLine || newMetadata.words[word.wordId]?.lineBreak)
+          ((word.newLine && !newMetadata.words[word.wordId]?.ignoreNewLine) ||
+            newMetadata.words[word.wordId]?.lineBreak)
         );
         if (foundIndex !== -1) {
           const id = bibleData[foundIndex].wordId;
