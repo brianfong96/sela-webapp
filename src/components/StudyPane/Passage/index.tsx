@@ -58,10 +58,14 @@ const Passage = ({
 
         const nextWordId = lastSelectedWordId + 1;
         if (bibleData.some(word => word.wordId === nextWordId)) {
-          newMetadata.words[nextWordId] = {
-            ...(newMetadata.words[nextWordId] || {}),
-            lineBreak: true,
-          };
+          const nextWord = bibleData.find(word => word.wordId === nextWordId);
+          const hasBreak = nextWord?.newLine || newMetadata.words[nextWordId]?.lineBreak;
+          if (hasBreak) {
+            newMetadata.words[nextWordId] = {
+              ...(newMetadata.words[nextWordId] || {}),
+              lineBreak: true,
+            };
+          }
           delete newMetadata.words[nextWordId].ignoreNewLine;
         }
       }
