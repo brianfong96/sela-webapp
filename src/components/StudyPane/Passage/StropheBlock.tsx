@@ -67,20 +67,24 @@ export const StropheBlock = ({
   
   const handleStropheBlockClick = () => {
     setSelected(prevState => !prevState);
-    (!selected) ? ctxSelectedStrophes.push(stropheProps) : ctxSelectedStrophes.splice(ctxSelectedStrophes.indexOf(stropheProps), 1);
-    ctxSetSelectedStrophes(ctxSelectedStrophes);
-    ctxSetNumSelectedStrophes(ctxSelectedStrophes.length);
+    const newSelected = (!selected)
+      ? [...ctxSelectedStrophes, stropheProps]
+      : ctxSelectedStrophes.filter(s => s !== stropheProps);
+    ctxSetSelectedStrophes(newSelected);
+    ctxSetNumSelectedStrophes(newSelected.length);
     // remove any selected word blocks if strophe block is selected
     ctxSetSelectedWords([]);
     ctxSetNumSelectedWords(0);
 
     ctxSetColorFill(DEFAULT_COLOR_FILL);
     ctxSetBorderColor(DEFAULT_BORDER_COLOR);
-    if (ctxSelectedStrophes.length >= 1) {
-      const lastSelectedStrophe = ctxSelectedStrophes.at(ctxSelectedStrophes.length-1);
+    if (newSelected.length >= 1) {
+      const lastSelectedStrophe = newSelected.at(newSelected.length - 1);
       if (lastSelectedStrophe) {
-        strophesHasSameColor(ctxSelectedStrophes, ColorActionType.colorFill) && ctxSetColorFill(lastSelectedStrophe.metadata.color?.fill || DEFAULT_COLOR_FILL);
-        strophesHasSameColor(ctxSelectedStrophes, ColorActionType.borderColor) && ctxSetBorderColor(lastSelectedStrophe.metadata.color?.border || DEFAULT_BORDER_COLOR);
+        strophesHasSameColor(newSelected, ColorActionType.colorFill) &&
+          ctxSetColorFill(lastSelectedStrophe.metadata.color?.fill || DEFAULT_COLOR_FILL);
+        strophesHasSameColor(newSelected, ColorActionType.borderColor) &&
+          ctxSetBorderColor(lastSelectedStrophe.metadata.color?.border || DEFAULT_BORDER_COLOR);
       }
     }
   }
