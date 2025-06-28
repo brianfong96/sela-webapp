@@ -3,7 +3,7 @@ import React, { useEffect, useContext } from 'react';
 import { FormatContext } from '../index';
 import { StanzaBlock } from './StanzaBlock';
 
-import { WordProps } from '@/lib/data';
+import { WordProps, StropheProps } from '@/lib/data';
 import { StructureUpdateType } from '@/lib/types';
 import { updateMetadataInDb } from '@/lib/actions';
 import { eventBus } from "@/lib/eventBus";
@@ -104,21 +104,31 @@ const Passage = ({
         }
       }
       else if (ctxStructureUpdateType == StructureUpdateType.mergeWithNextLine) {
-        newMetadata.words[selectedWordId] = {
-          ...(newMetadata.words[selectedWordId] || {}),
+        let lineStartId = selectedWordId;
+        const prevBreakIndex = bibleData.findLastIndex(word =>
+          word.wordId < selectedWordId &&
+          (word.newLine || newMetadata.words[word.wordId]?.lineBreak)
+        );
+        if (prevBreakIndex !== -1) {
+          lineStartId = bibleData[prevBreakIndex].wordId;
+        }
+
+        newMetadata.words[lineStartId] = {
+          ...(newMetadata.words[lineStartId] || {}),
           lineBreak: true,
         };
-        delete newMetadata.words[selectedWordId].ignoreNewLine;
+        delete newMetadata.words[lineStartId].ignoreNewLine;
 
-        sortedWords.slice(1).forEach(w => {
-          if (w.newLine || newMetadata.words[w.wordId]?.lineBreak) {
-            newMetadata.words[w.wordId] = {
-              ...(newMetadata.words[w.wordId] || {}),
+        for (let i = lineStartId + 1; i <= lastSelectedWordId; i++) {
+          const word = bibleData.find(w => w.wordId === i);
+          if (word?.newLine || newMetadata.words[i]?.lineBreak) {
+            newMetadata.words[i] = {
+              ...(newMetadata.words[i] || {}),
               lineBreak: undefined,
               ignoreNewLine: true,
             };
           }
-        });
+        }
 
         const foundIndex = bibleData.findIndex(word =>
           word.wordId > lastSelectedWordId &&
@@ -331,9 +341,19 @@ const Passage = ({
 
       updateMetadataInDb(ctxStudyId, newMetadata);
 
-      if (![StructureUpdateType.newStanza,
+      if ([StructureUpdateType.newStanza,
             StructureUpdateType.mergeWithPrevStanza,
             StructureUpdateType.mergeWithNextStanza].includes(ctxStructureUpdateType)) {
+        const stropheMap = new Map<number, StropheProps>();
+        updatedPassageProps.stanzaProps.forEach(stanza =>
+          stanza.strophes.forEach(s => stropheMap.set(s.stropheId, s))
+        );
+        const newSelectedStrophes = ctxSelectedStrophes
+          .map(s => stropheMap.get(s.stropheId))
+          .filter((s): s is StropheProps => !!s);
+        ctxSetSelectedStrophes(newSelectedStrophes);
+        ctxSetNumSelectedStrophes(newSelectedStrophes.length);
+      } else {
         ctxSetSelectedStrophes([]);
         ctxSetNumSelectedStrophes(0);
       }
