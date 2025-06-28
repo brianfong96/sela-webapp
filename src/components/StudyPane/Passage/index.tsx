@@ -43,14 +43,13 @@ const Passage = ({
         delete newMetadata.words[selectedWordId].ignoreNewLine;
 
         sortedWords.slice(1).forEach(w => {
-          const hasBreak = (w.newLine && !newMetadata.words[w.wordId]?.ignoreNewLine) ||
-            newMetadata.words[w.wordId]?.lineBreak;
-          if (hasBreak) {
-          newMetadata.words[w.wordId] = {
-            ...(newMetadata.words[w.wordId] || {}),
-            lineBreak: undefined,
-            ignoreNewLine: true,
-          };
+          const hadBreak = w.newLine || newMetadata.words[w.wordId]?.lineBreak;
+          if (hadBreak) {
+            newMetadata.words[w.wordId] = {
+              ...(newMetadata.words[w.wordId] || {}),
+              lineBreak: undefined,
+              ignoreNewLine: true,
+            };
           } else if (newMetadata.words[w.wordId]) {
             delete newMetadata.words[w.wordId].lineBreak;
             delete newMetadata.words[w.wordId].ignoreNewLine;
@@ -67,8 +66,8 @@ const Passage = ({
               ...(newMetadata.words[nextWordId] || {}),
               lineBreak: true,
             };
+            delete newMetadata.words[nextWordId].ignoreNewLine;
           }
-          delete newMetadata.words[nextWordId].ignoreNewLine;
         }
       }
       else if (ctxStructureUpdateType == StructureUpdateType.mergeWithPrevLine) {
