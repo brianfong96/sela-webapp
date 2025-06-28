@@ -39,17 +39,17 @@ const Passage = ({
         newMetadata.words[selectedWordId] = {
           ...(newMetadata.words[selectedWordId] || {}),
           lineBreak: true,
-          ignoreNewLine: undefined
         };
+        delete newMetadata.words[selectedWordId].ignoreNewLine;
 
         sortedWords.slice(1).forEach(w => {
           const hasBreak = w.newLine || newMetadata.words[w.wordId]?.lineBreak;
           if (hasBreak) {
-            newMetadata.words[w.wordId] = {
-              ...(newMetadata.words[w.wordId] || {}),
-              lineBreak: undefined,
-              ignoreNewLine: true,
-            };
+          newMetadata.words[w.wordId] = {
+            ...(newMetadata.words[w.wordId] || {}),
+            lineBreak: undefined,
+            ignoreNewLine: true,
+          };
           } else if (newMetadata.words[w.wordId]) {
             delete newMetadata.words[w.wordId].lineBreak;
             delete newMetadata.words[w.wordId].ignoreNewLine;
@@ -61,8 +61,8 @@ const Passage = ({
           newMetadata.words[nextWordId] = {
             ...(newMetadata.words[nextWordId] || {}),
             lineBreak: true,
-            ignoreNewLine: undefined
           };
+          delete newMetadata.words[nextWordId].ignoreNewLine;
         }
       }
       else if (ctxStructureUpdateType == StructureUpdateType.mergeWithPrevLine) {
@@ -95,16 +95,16 @@ const Passage = ({
           newMetadata.words[nextWordId] = {
             ...(newMetadata.words[nextWordId] || {}),
             lineBreak: true,
-            ignoreNewLine: undefined
           };
+          delete newMetadata.words[nextWordId].ignoreNewLine;
         }
       }
       else if (ctxStructureUpdateType == StructureUpdateType.mergeWithNextLine) {
         newMetadata.words[selectedWordId] = {
           ...(newMetadata.words[selectedWordId] || {}),
           lineBreak: true,
-          ignoreNewLine: undefined
         };
+        delete newMetadata.words[selectedWordId].ignoreNewLine;
 
         sortedWords.slice(1).forEach(w => {
           if (w.newLine || newMetadata.words[w.wordId]?.lineBreak) {
@@ -131,7 +131,7 @@ const Passage = ({
       }
       else if (ctxStructureUpdateType == StructureUpdateType.newStrophe) {
         newMetadata.words[selectedWordId] = {
-          ...newMetadata.words[selectedWordId],
+          ...(newMetadata.words[selectedWordId] || {}),
           stropheDiv: true,
         };
 
@@ -148,6 +148,7 @@ const Passage = ({
             ...(newMetadata.words[nextWordId] || {}),
             stropheDiv: true
           };
+          delete newMetadata.words[nextWordId].stropheMd;
         }
       }
       else if (ctxStructureUpdateType == StructureUpdateType.mergeWithPrevStrophe) {
