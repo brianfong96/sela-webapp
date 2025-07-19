@@ -526,7 +526,16 @@ export const StructureUpdateBtn = ({ updateType, toolTip }: { updateType: Struct
   if (updateType === StructureUpdateType.newLine) {
     buttonEnabled = hasWordSelected && !!firstSelectedWord;
   } else if (updateType === StructureUpdateType.mergeWithPrevLine) {
-    buttonEnabled = hasWordSelected && firstSelectedWord && firstSelectedWord.lineId !== 0;
+    if (hasWordSelected && firstSelectedWord) {
+      const lineWords = ctxPassageProps
+        .stanzaProps[firstSelectedWord.stanzaId]
+        .strophes[firstSelectedWord.stropheId]
+        .lines[firstSelectedWord.lineId].words;
+      const firstWordIdInLine = lineWords[0]?.wordId;
+      buttonEnabled = firstWordIdInLine !== firstSelectedWord.wordId;
+    } else {
+      buttonEnabled = false;
+    }
   } else if (updateType === StructureUpdateType.mergeWithNextLine) {
       buttonEnabled = hasWordSelected && lastSelectedWord &&
         ctxPassageProps.stanzaProps[lastSelectedWord.stanzaId]
