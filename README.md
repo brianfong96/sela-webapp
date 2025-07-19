@@ -23,3 +23,25 @@ Follow the steps below to add your change:
 5. create a PR to merge your working branch into main in GitHub
 6. resolve comments from other team members and merge conflicts (if any)
 7. after your PR passes the check and is approved, it is ready to merge. Usually the admin will merge it for you. 
+
+## UI Testing with Cypress
+
+This project uses [Cypress](https://www.cypress.io/) for automated UI tests. Sample tests live under `cypress/e2e`. To run all tests locally:
+
+```bash
+npm run cypress
+```
+
+### Running Tagged Tests
+
+Tests can be tagged using the `tags` option. Use `cypress-grep` to execute a subset of tests:
+
+```bash
+npx cypress run --env grepTags=@smoke
+```
+
+### Adding More Tests
+
+Create new spec files in `cypress/e2e` and include assertions using `cy.*` commands. Assign tags in the test options to group related scenarios.
+
+
