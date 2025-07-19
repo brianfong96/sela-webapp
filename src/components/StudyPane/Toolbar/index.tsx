@@ -1,8 +1,16 @@
 import { useContext } from "react";
 
-import { UndoBtn, RedoBtn, ColorActionBtn, ClearFormatBtn, 
-  IndentBtn, UniformWidthBtn, StructureUpdateBtn, StudyBtn, 
-  ClearAllFormatBtn} from "./Buttons";
+import {
+  UndoBtn,
+  RedoBtn,
+  ColorActionBtn,
+  ClearFormatBtn,
+  IndentBtn,
+  UniformWidthBtn,
+  StructureUpdateBtn,
+  StudyBtn,
+  ClearAllFormatBtn,
+} from "./buttons";
 import ScaleDropDown from "./ScaleDropDown";
 import { FormatContext } from '../index';
 import { ColorActionType, StructureUpdateType, BoxDisplayStyle } from "@/lib/types";
