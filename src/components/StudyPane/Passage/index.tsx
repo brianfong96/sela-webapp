@@ -34,7 +34,22 @@ const Passage = ({
       const sortedWords = [...ctxSelectedWords].sort((a, b) => a.wordId - b.wordId);
       const firstSelectedWord = sortedWords[0];
       let selectedWordId = (sortedWords.length > 0) ? sortedWords[0].wordId : 0;
-      const lastSelectedWordId = (sortedWords.length > 0) ? sortedWords[sortedWords.length - 1].wordId : selectedWordId;
+      let lastSelectedWordId = (sortedWords.length > 0) ? sortedWords[sortedWords.length - 1].wordId : selectedWordId;
+
+      // When splitting lines and only a single word is selected, act as if the
+      // remainder of the line is selected as well. This allows creating a new
+      // line without manually selecting every word to the end of the line.
+      let lastWordIdForNewLine = lastSelectedWordId;
+      if (sortedWords.length === 1 && firstSelectedWord) {
+        const lineWords = ctxPassageProps
+          .stanzaProps[firstSelectedWord.stanzaId]
+          .strophes[firstSelectedWord.stropheId]
+          .lines[firstSelectedWord.lineId].words;
+        const lastWord = lineWords.at(-1);
+        if (lastWord) {
+          lastWordIdForNewLine = lastWord.wordId;
+        }
+      }
 
       if (ctxStructureUpdateType == StructureUpdateType.newLine) {
         // Insert a new line before the selection and keep the remainder of the
@@ -45,7 +60,19 @@ const Passage = ({
           ignoreNewLine: undefined
         };
 
-        sortedWords.slice(1).forEach(w => {
+        let wordsToProcess: WordProps[] = [];
+        if (sortedWords.length === 1 && firstSelectedWord) {
+          const lineWords = ctxPassageProps
+            .stanzaProps[firstSelectedWord.stanzaId]
+            .strophes[firstSelectedWord.stropheId]
+            .lines[firstSelectedWord.lineId].words;
+          const startIdx = lineWords.findIndex(w => w.wordId === firstSelectedWord.wordId);
+          wordsToProcess = lineWords.slice(startIdx + 1);
+        } else {
+          wordsToProcess = sortedWords.slice(1);
+        }
+
+        wordsToProcess.forEach(w => {
           const hasBreak = w.newLine || newMetadata.words[w.wordId]?.lineBreak;
           if (hasBreak) {
             newMetadata.words[w.wordId] = {
@@ -59,7 +86,7 @@ const Passage = ({
           }
         });
 
-        const nextWordId = lastSelectedWordId + 1;
+        const nextWordId = lastWordIdForNewLine + 1;
         if (bibleData.some(word => word.wordId === nextWordId)) {
           newMetadata.words[nextWordId] = {
             ...(newMetadata.words[nextWordId] || {}),
@@ -266,7 +293,15 @@ const Passage = ({
         }
 
         const firstWordId = sortedStrophes[0].lines[0].words[0].wordId;
-        const lastStrophe = sortedStrophes[sortedStrophes.length - 1];
+        let lastStrophe = sortedStrophes[sortedStrophes.length - 1];
+        // If only a single strophe is selected, extend the selection to the end
+        // of the stanza so a new stanza split behaves intuitively.
+        if (sortedStrophes.length === 1) {
+          const stanzaStrophes = ctxPassageProps
+            .stanzaProps[lastStrophe.stanzaId!]
+            .strophes;
+          lastStrophe = stanzaStrophes[stanzaStrophes.length - 1];
+        }
         const lastWordIdInStrophes = lastStrophe.lines.at(-1)?.words.at(-1)?.wordId || firstWordId;
 
         // remove existing stanza breaks within the selection

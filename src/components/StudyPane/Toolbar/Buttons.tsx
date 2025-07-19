@@ -527,12 +527,11 @@ export const StructureUpdateBtn = ({ updateType, toolTip }: { updateType: Struct
     buttonEnabled = hasWordSelected && !!firstSelectedWord;
   } else if (updateType === StructureUpdateType.mergeWithPrevLine) {
     if (hasWordSelected && firstSelectedWord) {
-      const lineWords = ctxPassageProps
-        .stanzaProps[firstSelectedWord.stanzaId]
-        .strophes[firstSelectedWord.stropheId]
-        .lines[firstSelectedWord.lineId].words;
-      const firstWordIdInLine = lineWords[0]?.wordId;
-      buttonEnabled = firstWordIdInLine !== firstSelectedWord.wordId;
+      const line = ctxPassageProps.stanzaProps[firstSelectedWord.stanzaId]?.
+        strophes[firstSelectedWord.stropheId]?.
+        lines[firstSelectedWord.lineId];
+      const firstWordIdInLine = line?.words?.[0]?.wordId;
+      buttonEnabled = (firstWordIdInLine ?? firstSelectedWord.wordId) !== firstSelectedWord.wordId;
     } else {
       buttonEnabled = false;
     }
