@@ -6,7 +6,7 @@ import Header from "./Header";
 import Passage from "./Passage";
 import CloneStudyModal from '../Modals/CloneStudy';
 import InfoPane from "./InfoPane";
-import { Footer } from "./Footer";
+import WordInfoBar from "./WordInfoBar";
 
 import { ColorData, PassageData, PassageStaticData, PassageProps, StropheProps, WordProps, StudyMetadata, StanzaMetadata, StropheMetadata, WordMetadata } from '@/lib/data';
 import { ColorActionType, InfoPaneActionType, StructureUpdateType, BoxDisplayStyle } from "@/lib/types";
@@ -276,8 +276,8 @@ const StudyPane = ({
           }
         </div>
 
-        {/* Footer */}
-        <Footer/>
+        {/* Word Info Bar */}
+        <WordInfoBar/>
       </FormatContext.Provider>
     </>
   );
