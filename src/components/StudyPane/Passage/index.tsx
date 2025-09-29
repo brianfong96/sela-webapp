@@ -39,7 +39,6 @@ const Passage = ({
 
       if (sortedWords.length === 1) {
         if (ctxStructureUpdateType === StructureUpdateType.newLine ||
-            ctxStructureUpdateType === StructureUpdateType.mergeWithPrevLine ||
             ctxStructureUpdateType === StructureUpdateType.mergeWithNextLine) {
           const line = ctxPassageProps.stanzaProps[firstSelectedWord.stanzaId]
             .strophes[firstSelectedWord.stropheId].lines[firstSelectedWord.lineId];
@@ -91,10 +90,15 @@ const Passage = ({
         // Merge the selected words with the previous line by removing the break
         // before the selection. A break is inserted after the selection so the
         // following text stays on the next line.
+        const line = ctxPassageProps.stanzaProps[firstSelectedWord.stanzaId]
+          .strophes[firstSelectedWord.stropheId].lines[firstSelectedWord.lineId];
+        const mergeStartWordId = line.words[0].wordId;
+        const mergeEndWordId = lastSelectedWordId;
+
         // Find the break before the selection. Ignore words whose default break
         // has already been suppressed via the ignoreNewLine flag.
         const foundIndex = bibleData.findLastIndex(word =>
-          word.wordId <= selectedWordId &&
+          word.wordId <= mergeStartWordId &&
           (
             (!newMetadata.words[word.wordId]?.ignoreNewLine && word.newLine) ||
             newMetadata.words[word.wordId]?.lineBreak
@@ -109,21 +113,24 @@ const Passage = ({
           };
         }
 
-        for (let i = selectedWordId; i <= lastSelectedWordId; i++) {
-          const word = bibleData.find(w => w.wordId === i);
-          if (word?.newLine || newMetadata.words[i]?.lineBreak) {
-            newMetadata.words[i] = {
-              ...(newMetadata.words[i] || {}),
+        const mergeWords = bibleData.filter(w =>
+          w.wordId >= mergeStartWordId && w.wordId <= mergeEndWordId
+        );
+
+        mergeWords.forEach(word => {
+          if (word.newLine || newMetadata.words[word.wordId]?.lineBreak) {
+            newMetadata.words[word.wordId] = {
+              ...(newMetadata.words[word.wordId] || {}),
               lineBreak: undefined,
               ignoreNewLine: true,
             };
           }
-        }
+        });
 
-        const nextWordId = lastSelectedWordId + 1;
-        if (bibleData.some(word => word.wordId === nextWordId)) {
-          newMetadata.words[nextWordId] = {
-            ...(newMetadata.words[nextWordId] || {}),
+        const nextWord = bibleData.find(word => word.wordId > mergeEndWordId);
+        if (nextWord) {
+          newMetadata.words[nextWord.wordId] = {
+            ...(newMetadata.words[nextWord.wordId] || {}),
             lineBreak: true,
             ignoreNewLine: undefined
           };
