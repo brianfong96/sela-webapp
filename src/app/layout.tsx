@@ -2,7 +2,7 @@ import "@/styles/globals.css";
 import "@/styles/data-tables-css.css";
 import "@/styles/satoshi.css";
 
-import { Analytics } from "@vercel/analytics/next"
+import { Analytics } from "@vercel/analytics/react";
 
 import { ClerkProvider } from "@clerk/nextjs";
 
